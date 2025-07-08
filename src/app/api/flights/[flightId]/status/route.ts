@@ -61,7 +61,7 @@ interface BookingUser {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { flightId: string } }
+  { params }: { params: Promise<{ flightId: string }> }
 ) {
   const cookieStore = cookies();
   const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
@@ -72,6 +72,7 @@ export async function GET(
   }
 
   try {
+    const { flightId } = await params;
     const { data: flight, error } = await supabase
       .from('flights')
       .select(`
@@ -79,7 +80,7 @@ export async function GET(
         origin:airports!flights_origin_id_fkey(code, city, name),
         destination:airports!flights_destination_id_fkey(code, city, name)
       `)
-      .eq('id', params.flightId)
+      .eq('id', flightId)
       .single();
 
     if (error) throw error;
@@ -93,7 +94,7 @@ export async function GET(
     const { data: savedStatus } = await supabase
       .from('flight_status_updates')
       .select('*')
-      .eq('flight_id', params.flightId)
+      .eq('flight_id', flightId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
@@ -126,7 +127,7 @@ export async function GET(
     }
 
     return NextResponse.json({
-      flightId: params.flightId,
+      flightId: flightId,
       status: status,
       flight: flightData,
       lastUpdated: '2025-07-07 09:03:14',
@@ -140,7 +141,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { flightId: string } }
+  { params }: { params: Promise<{ flightId: string }> }
 ) {
   const cookieStore = cookies();
   const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
@@ -151,6 +152,7 @@ export async function POST(
   }
 
   try {
+    const { flightId } = await params;
     const body = await request.json();
     const { status, delay, gate, message } = body;
 
@@ -158,7 +160,7 @@ export async function POST(
     const { data: savedUpdate, error: saveError } = await supabase
       .from('flight_status_updates')
       .insert({
-        flight_id: params.flightId,
+        flight_id: flightId,
         status: status,
         message: message,
         delay_minutes: delay || 0,
@@ -181,14 +183,14 @@ export async function POST(
         origin:airports!flights_origin_id_fkey(code, city, name),
         destination:airports!flights_destination_id_fkey(code, city, name)
       `)
-      .eq('id', params.flightId)
+      .eq('id', flightId)
       .single();
 
     // Get all users who have booked this flight (now using user_email)
     const { data: bookingUsers } = await supabase
       .from('bookings')
       .select('id, user_email')
-      .eq('flight_id', params.flightId)
+      .eq('flight_id', flightId)
       .eq('booking_status', 'Confirmed');
 
     console.log('[FlightStatus POST] Bookings found:', bookingUsers);
@@ -206,7 +208,7 @@ export async function POST(
       const { data: previousStatusArr } = await supabase
         .from('flight_status_updates')
         .select('status')
-        .eq('flight_id', params.flightId)
+        .eq('flight_id', flightId)
         .order('created_at', { ascending: false })
         .limit(2);
 
@@ -279,12 +281,12 @@ export async function POST(
       updatedBy: session.user.email || 'system',
     };
 
-    const { broadcastFlightUpdate } = await import('../../status/route');
-    broadcastFlightUpdate(params.flightId, update);
+    const { broadcastFlightUpdate } = await import('@/utils/flightStatusBroadcast');
+    broadcastFlightUpdate(flightId, update);
 
     return NextResponse.json({
       success: true,
-      flightId: params.flightId,
+      flightId: flightId,
       update: update,
       saved: savedUpdate,
       emailsSent: normalizedBookingUsers.length,

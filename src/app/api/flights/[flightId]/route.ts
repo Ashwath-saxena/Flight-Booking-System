@@ -38,11 +38,11 @@ interface AirportDetails {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { flightId: string } }
+  { params }: { params: Promise<{ flightId: string }> }
 ) {
   try {
-    // Directly use the flightId without destructuring
-    const flightId = params.flightId;
+    // Await params to get the flightId
+    const { flightId } = await params;
     const searchParams = request.nextUrl.searchParams;
     const cabinClass = searchParams.get('cabinClass') || 'Economy';
 

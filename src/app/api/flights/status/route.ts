@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { addConnection, removeConnection } from '@/utils/flightStatusBroadcast';
 
 export const runtime = 'nodejs';
 
@@ -45,8 +46,7 @@ interface SavedFlightStatus {
   created_at: string;
 }
 
-// Store active connections
-const connections = new Map<string, ReadableStreamDefaultController>();
+// Store active connections (removed - now handled by utility)
 
 export async function GET(request: NextRequest) {
   const cookieStore = cookies();
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       
       // Store connection for this user/flight
       const connectionId = `${session.user.id}-${flightId || bookingId || 'all'}`;
-      connections.set(connectionId, controller);
+      addConnection(connectionId, controller);
       
       // Send initial connection message
       const message = `data: ${JSON.stringify({
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     cancel() {
       // Clean up connection
       const connectionId = `${session.user.id}-${flightId || bookingId || 'all'}`;
-      connections.delete(connectionId);
+      removeConnection(connectionId);
     }
   });
 
@@ -229,39 +229,4 @@ function getStatusColor(status: string): string {
     case 'cancelled': return 'red';
     default: return 'gray';
   }
-}
-
-// Define update interface
-interface FlightUpdate {
-  status?: string;
-  delay?: number;
-  gate?: string;
-  message?: string;
-  timestamp: string;
-  updatedBy: string;
-}
-
-// Function to broadcast updates to all connections (can be called from other parts of the app)
-export function broadcastFlightUpdate(flightId: string, update: FlightUpdate) {
-  const message = `data: ${JSON.stringify({
-    type: 'flight_update',
-    flightId: flightId,
-    update: update,
-    timestamp: '2025-07-07 08:33:03',
-    updatedBy: 'Ashwath-saxena'
-  })}\n\n`;
-  
-  const encodedMessage = new TextEncoder().encode(message);
-  
-  // Send to all relevant connections
-  connections.forEach((controller, connectionId) => {
-    if (connectionId.includes(flightId) || connectionId.includes('all')) {
-      try {
-        controller.enqueue(encodedMessage);
-      } catch (error) {
-        console.error('Error sending update to connection:', error);
-        connections.delete(connectionId);
-      }
-    }
-  });
 }
