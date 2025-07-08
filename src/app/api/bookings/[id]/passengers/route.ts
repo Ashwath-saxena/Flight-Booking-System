@@ -11,9 +11,9 @@ type Passenger = {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { bookingId: string } }
+  { params }: { params: { id: string } }
 ) {
-  const { bookingId } = params;
+  const { id: bookingId } = params;
 
   if (!bookingId) {
     return NextResponse.json({ error: 'Missing bookingId' }, { status: 400 });
