@@ -1,13 +1,14 @@
 // frontend/src/app/flight-status/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import FlightStatus from '@/components/FlightStatus';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function FlightStatusPage() {
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function FlightStatusContent() {
   const [flightId, setFlightId] = useState('');
   const [searchedFlightId, setSearchedFlightId] = useState('');
   const { user } = useAuth();
@@ -114,5 +115,35 @@ export default function FlightStatusPage() {
         </p>
       </motion.div>
     </motion.div>
+  );
+}
+
+// Loading component for Suspense fallback
+function FlightStatusLoading() {
+  return (
+    <motion.div
+      className="max-w-4xl mx-auto px-2 sm:px-6 py-10 flex justify-center items-center min-h-[50vh]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <motion.div
+        className="text-xl text-blue-700 flex items-center gap-3"
+        initial={{ scale: 0.97, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="animate-spin rounded-full h-7 w-7 border-t-2 border-b-2 border-blue-500"></div>
+        Loading flight status...
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// Main export wrapped with Suspense
+export default function FlightStatusPage() {
+  return (
+    <Suspense fallback={<FlightStatusLoading />}>
+      <FlightStatusContent />
+    </Suspense>
   );
 }
