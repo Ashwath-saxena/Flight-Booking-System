@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
@@ -34,7 +34,8 @@ type ErrorType = {
   message: string;
 };
 
-export default function RoundTripBookingPage() {
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function RoundTripBookingContent() {
   const router = useRouter();
   const params = useSearchParams();
   const { user } = useAuth();
@@ -401,6 +402,36 @@ export default function RoundTripBookingPage() {
 
   // Fallback
   return null;
+}
+
+// Loading component for Suspense fallback
+function RoundTripBookingLoading() {
+  return (
+    <motion.div
+      className="container mx-auto p-6 flex justify-center items-center min-h-[50vh]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <motion.div
+        className="text-xl text-blue-700 flex items-center gap-3"
+        initial={{ scale: 0.97, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="animate-spin rounded-full h-7 w-7 border-t-2 border-b-2 border-blue-500"></div>
+        Loading booking details...
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// Main export wrapped with Suspense
+export default function RoundTripBookingPage() {
+  return (
+    <Suspense fallback={<RoundTripBookingLoading />}>
+      <RoundTripBookingContent />
+    </Suspense>
+  );
 }
 
 // --- Subcomponents ---

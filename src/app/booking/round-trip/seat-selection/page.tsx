@@ -1,7 +1,7 @@
 // frontend/src/app/booking/round-trip/seat-selection/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, } from 'framer-motion';
 
@@ -75,7 +75,8 @@ function SeatLegend() {
   );
 }
 
-export default function RoundTripSeatSelectionPage() {
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function RoundTripSeatSelectionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -532,4 +533,34 @@ export default function RoundTripSeatSelectionPage() {
   }
 
   return null;
+}
+
+// Loading component for Suspense fallback
+function SeatSelectionLoading() {
+  return (
+    <motion.div
+      className="container mx-auto p-6 flex justify-center items-center min-h-[50vh]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <motion.div
+        className="text-xl text-blue-700 flex items-center gap-3"
+        initial={{ scale: 0.97, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="animate-spin rounded-full h-7 w-7 border-t-2 border-b-2 border-blue-500"></div>
+        Loading seat selection...
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// Main export wrapped with Suspense
+export default function RoundTripSeatSelectionPage() {
+  return (
+    <Suspense fallback={<SeatSelectionLoading />}>
+      <RoundTripSeatSelectionContent />
+    </Suspense>
+  );
 }

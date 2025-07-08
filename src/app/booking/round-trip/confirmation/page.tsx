@@ -1,7 +1,7 @@
 // frontend/src/app/booking/round-trip/confirmation/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase/supabaseBrowserClient";
@@ -61,7 +61,8 @@ type ErrorResponse = {
 const CURRENT_TIMESTAMP = "2025-07-07 08:56:36";
 const CURRENT_USER = "Ashwath-saxena";
 
-export default function RoundTripBookingConfirmationPage() {
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function RoundTripBookingConfirmationContent() {
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -736,5 +737,38 @@ export default function RoundTripBookingConfirmationPage() {
         Last updated: {CURRENT_TIMESTAMP} UTC by {CURRENT_USER}
       </div>
     </motion.div>
+  );
+}
+
+// Loading component for Suspense fallback
+function BookingConfirmationLoading() {
+  return (
+    <motion.div
+      className="max-w-4xl mx-auto p-6 flex justify-center items-center min-h-[50vh]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <motion.div
+        className="text-xl text-blue-700 flex items-center gap-3"
+        initial={{ scale: 0.97, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      >
+        <svg className="animate-spin h-7 w-7 text-blue-500" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-70" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        Loading booking details...
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// Main export wrapped with Suspense
+export default function RoundTripBookingConfirmationPage() {
+  return (
+    <Suspense fallback={<BookingConfirmationLoading />}>
+      <RoundTripBookingConfirmationContent />
+    </Suspense>
   );
 }
