@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase/supabaseServerClient';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { flightId: string } }
+  { params }: { params: Promise<{ flightId: string }> }
 ) {
   // 👇 Await params!
   const { flightId } = await params;

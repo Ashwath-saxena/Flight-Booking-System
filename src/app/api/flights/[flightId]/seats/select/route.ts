@@ -9,7 +9,7 @@ type Seat = {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { flightId: string } }
+  { params }: { params: Promise<{ flightId: string }> }
 ) {
   const { seatNumbers, bookingId, passengerIds } = await request.json();
 
