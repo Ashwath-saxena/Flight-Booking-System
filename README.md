@@ -28,10 +28,7 @@ The **Flight Booking System** is a robust, production-ready web app designed for
 
 ## 📸 Demo
 
-- **Live Demo:** [https://your-vercel-app-url.vercel.app/](https://your-vercel-app-url.vercel.app/)
-- **Demo Account:**  
-  Email: `demo@flightbooker.com`  
-  Password: `demopassword123`
+- **Live Demo:** [https://flight-booking-system-hkhfnw948-ashwath-saxenas-projects.vercel.app/)
 
 ---
 
@@ -65,7 +62,6 @@ The **Flight Booking System** is a robust, production-ready web app designed for
 - **SPA:** Next.js App Router (app directory), React Context API for state
 - **IndexedDB:** for offline search result caching
 - **Web Workers:** for sorting/filtering large flight datasets
-- **Unit tests:** Jest & Testing Library (see `/src/__tests__`)
 - **TypeScript-first, clean codebase**
 
 ---
@@ -239,7 +235,39 @@ create table public.airports (
 - **Emails:** Resend API for transactional messages
 
 ![System Architecture Diagram](./docs/architecture-diagram.png)
-*(You can generate this diagram in draw.io/Excalidraw and export here)*
+
+```
++--------------------+      +-----------------------------+      +-----------------------+
+|   User Browser     | <==> |  Next.js Frontend (React)   | <==> |   Supabase Backend    |
+| (SPA: Search/Book) |      | - Pages, API Routes (REST)  |      | - PostgreSQL Database |
+|                    |      | - Context, State, Workers   |      | - Auth, Storage       |
++--------------------+      +-----------------------------+      +-----------------------+
+        |                             |                                   |
+        |  IndexedDB (offline cache)  |                                   |
+        |  Web Workers (sorting)      |                                   |
+        |                             |                                   |
+        |         SSE (flight status) |<------[SSE endpoint]--------------|
+        |<--------/api/flights/status |                                   |
+        |                             |                                   |
+        |         RESTful API Calls   |<-------[REST API]-----------------|
+        |<--------/api/flights/...    |                                   |
+        |<--------/api/bookings/...   |                                   |
+        |                             |                                   |
+        |         Email Notifications |<------[Resend API]----------------|
+        |                             |                                   |
+        |         Real-time updates   |<------[Supabase Realtime]---------|
+        |                             |                                   |
+```
+
+**Key Flows:**
+- User interacts with a modern SPA (Next.js w/ App Router)
+- API routes in Next.js handle business logic, integrate with Supabase, and expose REST endpoints
+- Supabase handles persistent data (PostgreSQL), auth (users & sessions), and file storage
+- Real-time flight status via SSE endpoints (custom API route) and/or Supabase Realtime (for live updates)
+- Web Workers for computationally heavy tasks (flight filtering, sorting)
+- IndexedDB for caching flight search results (offline support)
+- Email notifications (booking confirmation, status updates) sent via Resend API from backend
+- Admin dashboard consumes same APIs for analytics & management
 
 ---
 
@@ -260,16 +288,6 @@ create table public.airports (
 
 ---
 
-## 🧪 Testing
-
-- Unit and integration tests with Jest and React Testing Library
-- To run tests:
-  ```bash
-  npm test
-  ```
-- (See `/src/__tests__/` for examples)
-
----
 
 ## 🗃️ Project Structure
 
@@ -308,20 +326,6 @@ frontend/
 **Other Notes:**
 - For email, configure [Resend](https://resend.com/) domain if needed
 - Supabase project must have all tables/migrations applied
-
----
-
-## 🎤 Demo Presentation
-
-- 15-minute walkthrough:
-  - Flight search (offline/online, fast filtering)
-  - Booking (one-way & round-trip)
-  - Seat selection, e-ticket, booking history
-  - Real-time status (live, SSE, admin update)
-  - Dashboard (analytics, status, routes)
-  - Profile management
-  - Tech highlights: IndexedDB, Web Workers, SSE, modular code, deployment
-  - Q&A
 
 ---
 
