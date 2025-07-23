@@ -28,7 +28,7 @@ The **Flight Booking System** is a robust, production-ready web app designed for
 
 ## 📸 Demo
 
-- **Live Demo:** [https://flight-booking-system-hkhfnw948-ashwath-saxenas-projects.vercel.app/)
+- **Live Demo:** [https://flight-booking-system-ashwath-saxenas-projects.vercel.app/) 
 
 ---
 
